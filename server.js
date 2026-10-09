@@ -6,7 +6,7 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 const http = require('http');
 const { Server } = require('socket.io');
-const { initDatabase, getUserByEmail, listUsers, getPaymentSettings, savePaymentSettings } = require('./database');
+const { initDatabase, getUserByEmail, listUsers, getPaymentSettings, savePaymentSettings, createPaymentLink, getPaymentLinkBySlug, listPaymentLinks, deletePaymentLink } = require('./database');
 
 const app = express();
 const server = http.createServer(app);
@@ -64,6 +64,7 @@ const sessionMiddleware = session({
 app.use(sessionMiddleware);
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(express.static(path.join(__dirname, '.')));
 
 io.engine.use(sessionMiddleware);
 
@@ -317,6 +318,65 @@ app.post('/api/payment-settings', requireAdmin, async (req, res) => {
     res.json({ success: true, payment: saved });
   } catch (error) {
     res.status(500).json({ message: 'Unable to save payment settings.' });
+  }
+});
+
+app.get('/api/payment-links', requireAdmin, async (req, res) => {
+  try {
+    const links = await listPaymentLinks();
+    res.json({ links });
+  } catch (error) {
+    res.status(500).json({ message: 'Unable to load payment links.' });
+  }
+});
+
+app.post('/api/payment-links', requireAdmin, async (req, res) => {
+  try {
+    const { name, slug, config } = req.body || {};
+    if (!name || !slug || !config) {
+      return res.status(400).json({ message: 'Name, slug, and config are required.' });
+    }
+    const existing = await getPaymentLinkBySlug(slug);
+    if (existing) {
+      return res.status(400).json({ message: 'Slug already exists.' });
+    }
+    const link = await createPaymentLink(name, slug, config);
+    res.json({ success: true, link });
+  } catch (error) {
+    res.status(500).json({ message: 'Unable to create payment link.' });
+  }
+});
+
+app.delete('/api/payment-links/:id', requireAdmin, async (req, res) => {
+  try {
+    await deletePaymentLink(req.params.id);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ message: 'Unable to delete payment link.' });
+  }
+});
+
+app.get('/p/:slug', async (req, res) => {
+  try {
+    const link = await getPaymentLinkBySlug(req.params.slug);
+    if (!link) {
+      return res.status(404).send('Payment link not found');
+    }
+    res.sendFile(path.join(__dirname, 'views', 'payment.html'));
+  } catch (error) {
+    res.status(500).send('Error loading payment page');
+  }
+});
+
+app.get('/api/payment-link/:slug', async (req, res) => {
+  try {
+    const link = await getPaymentLinkBySlug(req.params.slug);
+    if (!link) {
+      return res.status(404).json({ message: 'Payment link not found' });
+    }
+    res.json(link.config);
+  } catch (error) {
+    res.status(500).json({ message: 'Unable to load payment link config.' });
   }
 });
 
