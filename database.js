@@ -116,6 +116,17 @@ async function initDatabase() {
     )
   `);
 
+  await run(`
+    CREATE TABLE IF NOT EXISTS payment_links (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      slug TEXT NOT NULL UNIQUE,
+      config TEXT NOT NULL,
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
   const total = await get('SELECT COUNT(*) AS count FROM users');
   if (total.count === 0) {
     const bcrypt = require('bcryptjs');
@@ -169,6 +180,30 @@ async function savePaymentSettings(config) {
   return normalized;
 }
 
+async function createPaymentLink(name, slug, config) {
+  const normalized = normalizePaymentConfig(config);
+  const result = await run(
+    'INSERT INTO payment_links (name, slug, config) VALUES (?, ?, ?)',
+    [name, slug, JSON.stringify(normalized)]
+  );
+  return { id: result.id, name, slug, config: normalized };
+}
+
+async function getPaymentLinkBySlug(slug) {
+  const row = await get('SELECT * FROM payment_links WHERE slug = ?', [slug]);
+  if (!row) return null;
+  return { ...row, config: JSON.parse(row.config) };
+}
+
+async function listPaymentLinks() {
+  return all('SELECT id, name, slug, created_at, updated_at FROM payment_links ORDER BY created_at DESC');
+}
+
+async function deletePaymentLink(id) {
+  await run('DELETE FROM payment_links WHERE id = ?', [id]);
+  return { success: true };
+}
+
 module.exports = {
   db,
   initDatabase,
@@ -176,4 +211,8 @@ module.exports = {
   listUsers,
   getPaymentSettings,
   savePaymentSettings,
+  createPaymentLink,
+  getPaymentLinkBySlug,
+  listPaymentLinks,
+  deletePaymentLink,
 };
