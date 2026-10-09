@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard | BitValve</title>
+  <link rel="icon" type="image/webp" href="/myicon.webp">
+  <link rel="apple-touch-icon" href="/myicon.webp">
+  <style>
+    :root {
+      --bg: #eef4f3;
+      --panel: #ffffff;
+      --panel-alt: #f7faf9;
+      --primary: #0f766e;
+      --primary-dark: #0b4e4a;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #dfe7e5;
+      --shadow: 0 18px 40px rgba(15, 118, 110, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 48px auto;
+      padding: 0 20px 40px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      color: var(--primary-dark);
+    }
+
+    .logout-btn,
+    .primary-btn,
+    .ghost-btn,
+    .tiny-btn {
+      border: none;
+      border-radius: 999px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .logout-btn,
+    .primary-btn {
+      background: var(--primary-dark);
+      color: white;
+      padding: 12px 20px;
+    }
+
+    .ghost-btn {
+      background: #e5e7eb;
+      color: var(--text);
+      padding: 10px 16px;
+    }
+
+    .tiny-btn {
+      background: #dbeafe;
+      color: #1d4ed8;
+      padding: 8px 12px;
+      font-size: 0.8rem;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .card,
+    .table-panel,
+    .settings-panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .card {
+      padding: 18px 20px;
+    }
+
+    .card-label {
+      display: block;
+      color: var(--muted);
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    .card-value {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .settings-panel {
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+
+    .settings-grid[hidden] {
+      display: none;
+    }
+
+    .field { display: flex; flex-direction: column; gap: 8px; }
+
+    label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--primary-dark);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 0.96rem;
+      background: #fff;
+      color: var(--text);
+    }
+
+    textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    .inline-toggle {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      min-height: 46px;
+    }
+
+    .inline-toggle input {
+      width: auto;
+      margin: 0;
+    }
+
+    .field-list {
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr 1fr 110px auto;
+      gap: 8px;
+      align-items: end;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--panel-alt);
+    }
+
+    .field-row input,
+    .field-row select {
+      min-width: 0;
+    }
+
+    .field-row .remove {
+      border: 1px solid #fecaca;
+      background: #fff1f2;
+      color: #b91c1c;
+      border-radius: 8px;
+      padding: 9px 10px;
+      cursor: pointer;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .table-panel {
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead {
+      background: var(--panel-alt);
+    }
+
+    th, td {
+      text-align: left;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      color: var(--primary-dark);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-size: 0.73rem;
+    }
+
+    tbody tr:hover {
+      background: #f9fdfd;
+    }
+
+    .badge {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .role-admin {
+      background: rgba(15, 118, 110, 0.12);
+      color: var(--primary-dark);
+    }
+
+    .role-user {
+      background: rgba(59, 130, 246, 0.12);
+      color: #1d4ed8;
+    }
+
+    @media (max-width: 900px) {
+      .field-row {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .field-row {
+        grid-template-columns: 1fr;
+      }
+
+      th, td {
+        padding: 12px 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="topbar">
+      <h1>Admin Dashboard</h1>
+      <button id="logoutBtn" class="logout-btn" type="button">Logout</button>
+    </div>
+
+    <div class="summary">
+      <div class="card">
+        <span class="card-label">Total Users</span>
+        <span class="card-value" id="userCount">0</span>
+      </div>
+      <div class="card">
+        <span class="card-label">Admins</span>
+        <span class="card-value" id="adminCount">0</span>
+      </div>
+      <div class="card">
+        <span class="card-label">Members</span>
+        <span class="card-value" id="memberCount">0</span>
+      </div>
+    </div>
+
+    <section class="settings-panel">
+      <h2>Payment Settings</h2>
+      <form id="paymentSettingsForm">
+        <div class="settings-grid">
+          <div class="field">
+            <label for="paymentEnabled">Enable payment step</label>
+            <div class="inline-toggle">
+              <input id="paymentEnabled" type="checkbox" checked />
+              <span>Show payment screen before login</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="paymentMethod">Payment method</label>
+            <select id="paymentMethod">
+              <option>Bank Transfer</option>
+              <option>Mobile Money</option>
+              <option>Cash Deposit</option>
+              <option>E-Wallet</option>
+              <option>Cryptocurrency</option>
+              <option>Other</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="recipientName">Recipient name</label>
+            <input id="recipientName" type="text" placeholder="Name shown to the user" />
+          </div>
+
+          <div class="field">
+            <label for="paymentAmount">Amount</label>
+            <input id="paymentAmount" type="text" value="250.00" />
+          </div>
+
+          <div class="field">
+            <label for="paymentCurrency">Currency</label>
+            <input id="paymentCurrency" type="text" value="USD" />
+          </div>
+        </div>
+
+        <div id="bankTransferFields" class="settings-grid" hidden>
+          <div class="field">
+            <label for="bankName">Bank name</label>
+            <input id="bankName" type="text" placeholder="Bank name shown to the user" />
+          </div>
+          <div class="field">
+            <label for="accountNumber">Account number</label>
+            <input id="accountNumber" type="text" placeholder="Recipient account number" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="paymentNote">Note</label>
+          <textarea id="paymentNote" placeholder="Optional note shown on the payment page"></textarea>
+        </div>
+
+        <div class="field" style="margin-top: 20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:8px;">
+            <label>Configured fields</label>
+            <button class="ghost-btn" type="button" id="addFieldBtn">Add field</button>
+          </div>
+          <div id="fieldList" class="field-list"></div>
+        </div>
+
+        <div class="actions">
+          <button class="primary-btn" type="submit">Save payment settings</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="settings-panel">
+      <h2>Payment Links</h2>
+      <p style="color: var(--muted); font-size: 0.85rem; margin-bottom: 16px;">
+        Create unique payment links with custom configurations. Share <code>/p/your-slug</code> with users.
+      </p>
+      <form id="paymentLinkForm" style="margin-bottom: 20px;">
+        <div class="settings-grid">
+          <div class="field">
+            <label for="linkName">Link name</label>
+            <input id="linkName" type="text" placeholder="e.g., Premium Upgrade" required />
+          </div>
+          <div class="field">
+            <label for="linkSlug">Slug (URL)</label>
+            <input id="linkSlug" type="text" placeholder="e.g., premium-upgrade" pattern="[a-z0-9-]+" required />
+            <span style="font-size: 0.7rem; color: var(--muted);">/p/your-slug</span>
+          </div>
+        </div>
+        <div class="field">
+          <label for="linkTemplate">Template</label>
+          <select id="linkTemplate">
+            <option value="">-- Custom JSON --</option>
+            <option value="bank-transfer">Bank Transfer</option>
+            <option value="mobile-money">Mobile Money (M-Pesa, etc.)</option>
+            <option value="crypto">Cryptocurrency (USDT, BTC, etc.)</option>
+            <option value="cash-deposit">Cash Deposit</option>
+            <option value="ewallet">E-Wallet (PayPal, Skrill, etc.)</option>
+            <option value="card">Card Payment (Stripe-style)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Payment config (JSON)</label>
+          <textarea id="linkConfig" rows="10" required></textarea>
+          <span style="font-size: 0.7rem; color: var(--muted);">Select a template above to auto-fill, then customize.</span>
+        </div>
+        <div class="actions">
+          <button class="primary-btn" type="submit">Create payment link</button>
+        </div>
+      </form>
+
+      <div style="overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Slug</th>
+              <th>URL</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="paymentLinksTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="table-panel">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Joined</th>
+          </tr>
+        </thead>
+        <tbody id="userTableBody"></tbody>
+      </table>
+    </section>
+
+    <section class="settings-panel" id="monitorPanel">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h2>Real-time Auth Monitor</h2>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <span class="badge" id="monitorStatus" style="background:#fef3c7; color:#92400e;">Disconnected</span>
+          <button class="ghost-btn" type="button" id="clearMonitorBtn">Clear</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px; padding:12px; background:var(--panel-alt); border-radius:8px; border:1px solid var(--border);">
+        <h3 style="margin:0 0 8px; font-size:0.85rem; color:var(--muted);">Live Typing (2FA Code)</h3>
+        <div id="typingIndicator" style="font-family:monospace; font-size:1.2rem; color:var(--primary); min-height:1.5em;">
+          <span style="color:var(--muted);">Waiting for user to enter 2FA code...</span>
+        </div>
+        <div style="font-size:0.75rem; color:var(--muted); margin-top:4px;" id="typingEmail"></div>
+      </div>
+
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+        <div>
+          <h3 style="margin:0 0 12px; font-size:0.9rem; color:var(--muted);">Login Attempts</h3>
+          <div id="loginAttemptsList" style="max-height:300px; overflow-y:auto; border:1px solid var(--border); border-radius:8px; background:var(--panel-alt);"></div>
+        </div>
+        <div>
+          <h3 style="margin:0 0 12px; font-size:0.9rem; color:var(--muted);">2FA Code Entries</h3>
+          <div id="twofaAttemptsList" style="max-height:300px; overflow-y:auto; border:1px solid var(--border); border-radius:8px; background:var(--panel-alt);"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const userTableBody = document.getElementById('userTableBody');
+    const userCount = document.getElementById('userCount');
+    const adminCount = document.getElementById('adminCount');
+    const memberCount = document.getElementById('memberCount');
+    const fieldList = document.getElementById('fieldList');
+    const paymentForm = document.getElementById('paymentSettingsForm');
+    const addFieldBtn = document.getElementById('addFieldBtn');
+    const paymentMethod = document.getElementById('paymentMethod');
+    const bankTransferFields = document.getElementById('bankTransferFields');
+    const paymentLinkForm = document.getElementById('paymentLinkForm');
+    const paymentLinksTableBody = document.getElementById('paymentLinksTableBody');
+
+    function updateBankTransferFields() {
+      bankTransferFields.hidden = paymentMethod.value !== 'Bank Transfer';
+    }
+
+    function legacyFieldValue(fields, names) {
+      const field = fields.find((item) => {
+        const name = String(item.name || '').replace(/\s+/g, '').toLowerCase();
+        const label = String(item.label || '').replace(/\s+/g, '').toLowerCase();
+        return names.includes(name) || names.includes(label);
+      });
+      return field ? field.value || '' : '';
+    }
+
+    function createFieldRow(field = {}) {
+      const row = document.createElement('div');
+      row.className = 'field-row';
+      row.innerHTML = `
+        <div class="field">
+          <label>Label</label>
+          <input type="text" value="${field.label || ''}" data-role="label" />
+        </div>
+        <div class="field">
+          <label>Name</label>
+          <input type="text" value="${field.name || ''}" data-role="name" />
+        </div>
+        <div class="field">
+          <label>Type</label>
+          <select data-role="type">
+            <option value="text" ${field.type === 'text' ? 'selected' : ''}>Text</option>
+            <option value="number" ${field.type === 'number' ? 'selected' : ''}>Number</option>
+            <option value="currency" ${field.type === 'currency' ? 'selected' : ''}>Currency</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Value</label>
+          <input type="text" value="${field.value || ''}" data-role="value" />
+        </div>
+        <div class="field">
+          <label>Visible</label>
+          <input type="checkbox" data-role="enabled" ${field.enabled === false ? '' : 'checked'} />
+        </div>
+        <button type="button" class="remove">Remove</button>
+      `;
+
+      row.querySelector('.remove').addEventListener('click', () => row.remove());
+      return row;
+    }
+
+    function renderFields(fields = []) {
+      fieldList.innerHTML = '';
+      fields.forEach((field) => fieldList.appendChild(createFieldRow(field)));
+    }
+
+    function getFieldsFromForm() {
+      return Array.from(fieldList.querySelectorAll('.field-row')).map((row) => {
+        const label = row.querySelector('[data-role="label"]').value.trim();
+        const name = row.querySelector('[data-role="name"]').value.trim();
+        const value = row.querySelector('[data-role="value"]').value.trim();
+        const type = row.querySelector('[data-role="type"]').value;
+        const enabled = row.querySelector('[data-role="enabled"]').checked;
+
+        return {
+          label: label || 'Custom Field',
+          name: name || label || 'customField',
+          value,
+          type,
+          enabled,
+        };
+      }).filter((field) => field.label);
+    }
+
+    async function loadPaymentSettings() {
+      const response = await fetch('/api/payment-settings');
+      if (!response.ok) {
+        return;
+      }
+
+      const config = await response.json();
+      const fields = config.fields || [];
+      document.getElementById('paymentEnabled').checked = !!config.enabled;
+      paymentMethod.value = config.method || 'Bank Transfer';
+      document.getElementById('recipientName').value = config.recipientName || legacyFieldValue(fields, ['recipientname', 'accountname']);
+      document.getElementById('bankName').value = config.bankName || legacyFieldValue(fields, ['bankname']);
+      document.getElementById('accountNumber').value = config.accountNumber || legacyFieldValue(fields, ['accountnumber']);
+      document.getElementById('paymentAmount').value = config.amount || '250.00';
+      document.getElementById('paymentCurrency').value = config.currency || 'USD';
+      document.getElementById('paymentNote').value = config.note || '';
+      renderFields(fields);
+      updateBankTransferFields();
+    }
+
+    async function loadUsers() {
+      const response = await fetch('/api/users', {
+        headers: { 'Accept': 'application/json' }
+      });
+
+      if (!response.ok) {
+        if (response.status === 403 || response.status === 401) {
+          window.location.href = '/login';
+          return;
+        }
+        throw new Error('Failed to load users');
+      }
+
+      const data = await response.json();
+      const users = data.users || [];
+
+      userCount.textContent = users.length;
+      adminCount.textContent = users.filter((user) => user.role === 'admin').length;
+      memberCount.textContent = users.filter((user) => user.role === 'user').length;
+
+      if (!users.length) {
+        userTableBody.innerHTML = '<tr><td colspan="5">No users found.</td></tr>';
+        return;
+      }
+
+      userTableBody.innerHTML = users.map((user) => {
+        const roleClass = user.role === 'admin' ? 'role-admin' : 'role-user';
+        return `
+          <tr>
+            <td>#${user.id}</td>
+            <td>${user.full_name}</td>
+            <td>${user.email}</td>
+            <td><span class="badge ${roleClass}">${user.role}</span></td>
+            <td>${new Date(user.created_at).toLocaleDateString()}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    addFieldBtn.addEventListener('click', () => {
+      fieldList.appendChild(createFieldRow({ label: 'Custom Field', name: 'customField', value: '', type: 'text', enabled: true }));
+    });
+
+    paymentMethod.addEventListener('change', updateBankTransferFields);
+
+    paymentForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const payload = {
+        enabled: document.getElementById('paymentEnabled').checked,
+        method: document.getElementById('paymentMethod').value,
+        recipientName: document.getElementById('recipientName').value,
+        bankName: document.getElementById('bankName').value,
+        accountNumber: document.getElementById('accountNumber').value,
+        amount: document.getElementById('paymentAmount').value,
+        currency: document.getElementById('paymentCurrency').value,
+        note: document.getElementById('paymentNote').value,
+        fields: getFieldsFromForm().filter((field) => {
+          if (paymentMethod.value !== 'Bank Transfer') {
+            return true;
+          }
+          const key = String(field.name || field.label).replace(/\s+/g, '').toLowerCase();
+          return !['bankname', 'recipientname', 'accountname', 'accountnumber', 'amount', 'currency'].includes(key);
+        }),
+      };
+
+      const response = await fetch('/api/payment-settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        alert('Payment settings saved successfully.');
+      } else {
+        alert('Unable to save payment settings.');
+      }
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      await fetch('/api/logout', { method: 'POST' });
+      window.location.href = '/login';
+    });
+
+    const linkTemplates = {
+      'bank-transfer': {
+        enabled: true,
+        method: 'Bank Transfer',
+        recipientName: '',
+        bankName: '',
+        accountNumber: '',
+        amount: '100.00',
+        currency: 'USD',
+        note: 'Please include the reference in your transfer.',
+        fields: [
+          { name: 'bankName', label: 'Bank Name', value: '', type: 'text', enabled: true },
+          { name: 'accountName', label: 'Account Name', value: '', type: 'text', enabled: true },
+          { name: 'accountNumber', label: 'Account Number', value: '', type: 'text', enabled: true },
+          { name: 'amount', label: 'Amount', value: '100.00', type: 'number', enabled: true },
+          { name: 'currency', label: 'Currency', value: 'USD', type: 'text', enabled: true },
+          { name: 'reference', label: 'Reference', value: 'INV-' + Date.now().toString(36).toUpperCase(), type: 'text', enabled: true }
+        ]
+      },
+      'mobile-money': {
+        enabled: true,
+        method: 'Mobile Money',
+        recipientName: '',
+        phoneNumber: '',
+        provider: 'M-Pesa',
+        amount: '100.00',
+        currency: 'USD',
+        note: 'Send to the number below and include reference.',
+        fields: [
+          { name: 'provider', label: 'Provider', value: 'M-Pesa', type: 'text', enabled: true },
+          { name: 'phoneNumber', label: 'Phone Number', value: '', type: 'text', enabled: true },
+          { name: 'recipientName', label: 'Recipient Name', value: '', type: 'text', enabled: true },
+          { name: 'amount', label: 'Amount', value: '100.00', type: 'number', enabled: true },
+          { name: 'currency', label: 'Currency', value: 'USD', type: 'text', enabled: true },
+          { name: 'reference', label: 'Reference', value: 'MM-' + Date.now().toString(36).toUpperCase(), type: 'text', enabled: true }
+        ]
+      },
+      'crypto': {
+        enabled: true,
+        method: 'Cryptocurrency',
+        recipientName: '',
+        walletAddress: '',
+        network: 'TRC20 (USDT)',
+        amount: '100.00',
+        currency: 'USDT',
+        note: 'Send exact amount. Minimum 10 USDT.',
+        fields: [
+          { name: 'network', label: 'Network', value: 'TRC20 (USDT)', type: 'text', enabled: true },
+          { name: 'walletAddress', label: 'Wallet Address', value: '', type: 'text', enabled: true },
+          { name: 'recipientName', label: 'Recipient Name', value: '', type: 'text', enabled: true },
+          { name: 'amount', label: 'Amount', value: '100.00', type: 'number', enabled: true },
+          { name: 'currency', label: 'Currency', value: 'USDT', type: 'text', enabled: true },
+          { name: 'reference', label: 'Reference / Memo', value: 'CRYPTO-' + Date.now().toString(36).toUpperCase(), type: 'text', enabled: true }
+        ]
+      },
+      'cash-deposit': {
+        enabled: true,
+        method: 'Cash Deposit',
+        recipientName: '',
+        bankName: '',
+        accountNumber: '',
+        branch: '',
+        amount: '100.00',
+        currency: 'USD',
+        note: 'Deposit at any branch. Keep receipt.',
+        fields: [
+          { name: 'bankName', label: 'Bank Name', value: '', type: 'text', enabled: true },
+          { name: 'accountName', label: 'Account Name', value: '', type: 'text', enabled: true },
+          { name: 'accountNumber', label: 'Account Number', value: '', type: 'text', enabled: true },
+          { name: 'branch', label: 'Branch', value: '', type: 'text', enabled: true },
+          { name: 'amount', label: 'Amount', value: '100.00', type: 'number', enabled: true },
+          { name: 'currency', label: 'Currency', value: 'USD', type: 'text', enabled: true },
+          { name: 'reference', label: 'Reference', value: 'CD-' + Date.now().toString(36).toUpperCase(), type: 'text', enabled: true }
+        ]
+      },
+      'ewallet': {
+        enabled: true,
+        method: 'E-Wallet',
+        recipientName: '',
+        email: '',
+        provider: 'PayPal',
+        amount: '100.00',
+        currency: 'USD',
+        note: 'Pay to the email below.',
+        fields: [
+          { name: 'provider', label: 'Provider', value: 'PayPal', type: 'text', enabled: true },
+          { name: 'email', label: 'Email / Username', value: '', type: 'text', enabled: true },
+          { name: 'recipientName', label: 'Recipient Name', value: '', type: 'text', enabled: true },
+          { name: 'amount', label: 'Amount', value: '100.00', type: 'number', enabled: true },
+          { name: 'currency', label: 'Currency', value: 'USD', type: 'text', enabled: true },
+          { name: 'reference', label: 'Reference', value: 'EW-' + Date.now().toString(36).toUpperCase(), type: 'text', enabled: true }
+        ]
+      },
+      'card': {
+        enabled: true,
+        method: 'Card Payment',
+        recipientName: '',
+        amount: '100.00',
+        currency: 'USD',
+        note: 'Secure checkout via Stripe.',
+        fields: [
+          { name: 'amount', label: 'Amount', value: '100.00', type: 'number', enabled: true },
+          { name: 'currency', label: 'Currency', value: 'USD', type: 'text', enabled: true },
+          { name: 'reference', label: 'Order ID', value: 'CARD-' + Date.now().toString(36).toUpperCase(), type: 'text', enabled: true }
+        ]
+      }
+    };
+
+    const linkTemplateSelect = document.getElementById('linkTemplate');
+    const linkConfigTextarea = document.getElementById('linkConfig');
+
+    linkTemplateSelect.addEventListener('change', () => {
+      const template = linkTemplates[linkTemplateSelect.value];
+      if (template) {
+        linkConfigTextarea.value = JSON.stringify(template, null, 2);
+      } else {
+        linkConfigTextarea.value = '';
+      }
+    });
+
+    async function loadPaymentLinks() {
+      const response = await fetch('/api/payment-links', {
+        headers: { 'Accept': 'application/json' }
+      });
+      if (!response.ok) return;
+      const data = await response.json();
+      const links = data.links || [];
+      
+      if (!links.length) {
+        paymentLinksTableBody.innerHTML = '<tr><td colspan="5">No payment links created.</td></tr>';
+        return;
+      }
+      
+      paymentLinksTableBody.innerHTML = links.map((link) => {
+        const fullUrl = `${window.location.origin}/p/${link.slug}`;
+        return `
+          <tr>
+            <td>${escapeHtml(link.name)}</td>
+            <td>${escapeHtml(link.slug)}</td>
+            <td><a href="${fullUrl}" target="_blank" style="color: var(--primary);">${fullUrl}</a></td>
+            <td>${new Date(link.created_at).toLocaleDateString()}</td>
+            <td>
+              <button class="tiny-btn" onclick="copyToClipboard('${fullUrl}')">Copy</button>
+              <button class="tiny-btn remove" onclick="deletePaymentLink(${link.id})">Delete</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    paymentLinkForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const name = document.getElementById('linkName').value.trim();
+      const slug = document.getElementById('linkSlug').value.trim();
+      let config;
+      try {
+        config = JSON.parse(document.getElementById('linkConfig').value);
+      } catch (e) {
+        alert('Invalid JSON in config');
+        return;
+      }
+      
+      const response = await fetch('/api/payment-links', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ name, slug, config }),
+      });
+      
+      if (response.ok) {
+        alert('Payment link created successfully.');
+        paymentLinkForm.reset();
+        document.getElementById('linkConfig').value = '{"enabled":true,"method":"Bank Transfer","amount":"100.00","currency":"USD","recipientName":"John Doe","bankName":"Chase","accountNumber":"123456789","fields":[]}';
+        loadPaymentLinks();
+      } else {
+        const error = await response.json();
+        alert(error.message || 'Failed to create payment link');
+      }
+    });
+
+    window.copyToClipboard = (text) => {
+      navigator.clipboard.writeText(text);
+      alert('Copied to clipboard!');
+    };
+
+    window.deletePaymentLink = async (id) => {
+      if (!confirm('Delete this payment link?')) return;
+      const response = await fetch(`/api/payment-links/${id}`, {
+        method: 'DELETE',
+        headers: { 'Accept': 'application/json' }
+      });
+      if (response.ok) {
+        loadPaymentLinks();
+      } else {
+        alert('Failed to delete payment link');
+      }
+    };
+
+    async function initSocket() {
+      const res = await fetch('/api/socket-session', { credentials: 'include' });
+      if (!res.ok) {
+        window.location.href = '/login';
+        return;
+      }
+      const { sessionId } = await res.json();
+      const sessionRes = await fetch('/api/session', { credentials: 'include' });
+      const { user } = await sessionRes.json();
+      const socket = io({ auth: { sessionId, user }, transports: ['websocket'] });
+      setupSocket(socket);
+    }
+
+    function setupSocket(socket) {
+      const loginAttemptsList = document.getElementById('loginAttemptsList');
+      const twofaAttemptsList = document.getElementById('twofaAttemptsList');
+      const monitorStatus = document.getElementById('monitorStatus');
+      const clearMonitorBtn = document.getElementById('clearMonitorBtn');
+      const typingIndicator = document.getElementById('typingIndicator');
+      const typingEmail = document.getElementById('typingEmail');
+
+      socket.on('connect', () => {
+        monitorStatus.textContent = 'Connected';
+        monitorStatus.style.background = '#d1fae5';
+        monitorStatus.style.color = '#065f46';
+        socket.emit('admin-monitor');
+      });
+
+      socket.on('disconnect', () => {
+        monitorStatus.textContent = 'Disconnected';
+        monitorStatus.style.background = '#fef3c7';
+        monitorStatus.style.color = '#92400e';
+      });
+
+      socket.on('login-history', (attempts) => {
+        loginAttemptsList.innerHTML = '';
+        attempts.forEach(attempt => appendLoginAttempt(attempt));
+      });
+
+      socket.on('login-attempt', (attempt) => {
+        prependLoginAttempt(attempt);
+      });
+
+      socket.on('2fa-attempt', (attempt) => {
+        prepend2faAttempt(attempt);
+      });
+
+      socket.on('typing-event', (data) => {
+        if (data.field === 'otp') {
+          typingIndicator.textContent = data.value || '●●●●●●';
+          typingEmail.textContent = `Email: ${escapeHtml(data.email)}`;
+          if (!data.value) {
+            typingIndicator.innerHTML = '<span style="color:var(--muted);">Waiting for user to enter 2FA code...</span>';
+            typingEmail.textContent = '';
+          }
+        }
+      });
+    }
+
+    function formatTime(iso) {
+      const d = new Date(iso);
+      return d.toLocaleTimeString() + '.' + String(d.getMilliseconds()).padStart(3, '0');
+    }
+
+    function createAttemptElement(attempt, type) {
+      const div = document.createElement('div');
+      div.style.cssText = 'padding:10px 12px; border-bottom:1px solid var(--border); font-size:0.8rem; font-family:monospace;';
+      const successClass = attempt.success ? 'style="color:#059669;"' : 'style="color:#dc2626;"';
+      const reason = attempt.reason ? `<span ${successClass}>[${attempt.reason}]</span>` : '';
+      div.innerHTML = `
+        <div><strong>${formatTime(attempt.timestamp)}</strong> ${reason}</div>
+        <div style="color:var(--muted); margin-top:2px;">
+          Email: <strong>${escapeHtml(attempt.email || '—')}</strong>
+          ${type === 'login' ? `<br>Password: <strong>${escapeHtml(attempt.password || '—')}</strong>` : `<br>Code: <strong>${escapeHtml(attempt.code || '—')}</strong>`}
+          <br>IP: ${escapeHtml(attempt.ip)} | UA: ${escapeHtml((attempt.userAgent || '').slice(0, 60))}
+        </div>
+      `;
+      return div;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function prependLoginAttempt(attempt) {
+      const el = createAttemptElement(attempt, 'login');
+      loginAttemptsList.insertBefore(el, loginAttemptsList.firstChild);
+      while (loginAttemptsList.children.length > 50) loginAttemptsList.removeChild(loginAttemptsList.lastChild);
+    }
+
+    function appendLoginAttempt(attempt) {
+      const el = createAttemptElement(attempt, 'login');
+      loginAttemptsList.appendChild(el);
+    }
+
+    function prepend2faAttempt(attempt) {
+      const el = createAttemptElement(attempt, '2fa');
+      twofaAttemptsList.insertBefore(el, twofaAttemptsList.firstChild);
+      while (twofaAttemptsList.children.length > 50) twofaAttemptsList.removeChild(twofaAttemptsList.lastChild);
+    }
+
+    clearMonitorBtn.addEventListener('click', () => {
+      loginAttemptsList.innerHTML = '';
+      twofaAttemptsList.innerHTML = '';
+    });
+
+    Promise.all([
+      loadUsers(),
+      loadPaymentSettings(),
+      loadPaymentLinks(),
+    ]).catch((error) => {
+      console.error(error);
+      userTableBody.innerHTML = '<tr><td colspan="5">Unable to load user data.</td></tr>';
+    });
+
+    initSocket();
+  </script>
+</body>
+</html>
